@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>React.JS</title>
+    <script src="https://npmcdn.com/react@15.3.0/dist/react.js"></script>
+    <script src="https://npmcdn.com/react-dom@15.3.0/dist/react-dom.js"></script>
+    <script src="src/browser.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <style>
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        img{
+            max-width:25%; /* you can use % */
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+<div id="container">
+</div>
+
+<script type="text/babel">
+
+    var MovieTable = React.createClass({
+
+        eachMovie: function (movie, i) {
+            return <MovieRow
+                    key={i}
+                    index={i}
+                    changeRowColour={<CheckBox />}
+                    deleteRow={this.handleMovieDelete}
+                    addNewMovie={this.handleSubmit}
+                    title={movie.title}
+                    genre={movie.genre}
+                    release={movie.release}
+                    awards={movie.awards}
+                    rating={movie.rating}
+            />
+        },
+
+        render: function() {
+            var movies = this.props.movieList.map(this.eachMovie);
+            return (
+                    <table>
+                        <thead>
+                        <tr style={this.trStyle}>
+                            <th>Title</th>
+                            <th>Genre</th>
+                            <th>Release Year</th>
+                            <th>Notable Awards</th>
+                            <th>IMDB Rating</th>
+                            <th>Watched</th>
+                            <th>Delete</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {movies}
+                        </tbody>
+                    </table>
+            );
+        }
+    });
+
+    var CheckBox = React.createClass({
+        getInitialState: function() {
+            return {checked: true}
+        },
+
+        handleChecked: function () {
+            this.setState({checked: !this.state.checked})
+        },
+
+        render: function (i) {
+            var msg;
+            var trStyle = {
+                background: '#fff'
+            };
+
+            if(!this.state.checked){
+                msg = 'checked';
+                trStyle['background'] = 'aef5cd';
+
+
+            }else{
+                msg = 'unchecked';
+                document.body.style.backgroundColor = null;
+            }
+            return (
+                    <div>
+                        <input type="checkbox" onChange={this.handleChecked} />
+                        {msg}
+                    </div>
+            );
+        },
+    });
+
+    var MovieRow = React.createClass({
+
+        deleteMovie: function () {
+          console.log("deleting Movie");
+          this.props.deleteRow(this.props.index);
+        },
+
+        addMovie: function () {
+          console.log("adding new movie");
+          this.props.addNewMovie(this.refs.val.value, this.refs.val2.value);
+        },
+
+        render: function() {
+            return (
+
+                    <tr>
+                        <td ref="checkBoxSubmit">{this.props.title}</td>
+                        <td>{this.props.genre}</td>
+                        <td>{this.props.release}</td>
+                        <td>{this.props.awards}</td>
+                        <td>{this.props.rating}</td>
+                        <td>{this.props.changeRowColour}</td>
+                        <td><button className="btn btn-danger" onClick={this.deleteMovie}>Delete</button></td>
+                        </tr>
+            )
+        }
+    });
+
+    var MainApp = React.createClass({
+
+        handleSubmit: function() {
+            var val = this.refs.titleSubmission.value;
+            var val2 = this.refs.genreSubmission.value;
+            var val3 = this.refs.releaseSubmission.value;
+            var val4 = this.refs.awardsSubmission.value;
+            var val5 = this.refs.ratingSubmission.value;
+            console.log('Testing with: ' + val + val2 + val3 + val4 + val5);
+
+    },
+
+        getInitialState: function() {
+
+            return {
+                movies: [{
+                    title: "Nightmare on Elm Street",
+                    genre: "Horror",
+                    release: "July 12, 1985",
+                    awards: "Avoriaz Fantastic Film Festival - Critics Award",
+                    rating: "7.5/10"
+                }, {
+                    title: "Dread ",
+                    genre: "Thriller",
+                    release: "January 29, 2010",
+                    awards: "Fright Meter Awards - Best Supporting Actress",
+                    rating: "5.7/10"
+                }]
+            };
+        },
+
+        handleMovieDelete: function (i) {
+            console.log("deleting comment" + i);
+            var arr = this.state.eachMovie;
+            arr.splice(i, 1);
+            this.setState({eachMovie: arr});
+        },
+
+        render: function() {
+
+            return (
+                    <div className="task">
+                        <h1>React Task</h1>
+                        <div className="content">
+                            <MovieTable movieList={this.state.movies}/>
+                            <p></p>
+                        </div>
+
+                        <div>
+                        <form  className="form-horizontal" method="post" onSubmit={this.addMovie}>
+                            <fieldset>
+                                <legend>Submit New Movie</legend>
+                                    <div className="form form-group">
+                                            <label className="col-md-4 control-label">Title: </label>
+                                        <div className="col-md-4">
+                                            <input type="text" placeholder="" className="form-control input-md" ref="titleSubmission"/>
+                                        </div>
+                                    </div>
+                                    <div className="form form-group">
+                                            <label className="col-md-4 control-label">Genre: </label>
+                                        <div className="col-md-4">
+                                            <input type="text" placeholder="" className="form-control input-md" ref="genreSubmission"/>
+                                        </div>
+                                    </div>
+                                    <div className="form form-group">
+                                            <label className="col-md-4 control-label">Release Date: </label>
+                                        <div className="col-md-4">
+                                            <input type="text" placeholder="" className="form-control input-md" ref="releaseSubmission"/>
+                                        </div>
+                                    </div>
+                                    <div className="form form-group">
+                                            <label className="col-md-4 control-label">Notable Awards: </label>
+                                        <div className="col-md-4">
+                                            <input type="text" placeholder="" className="form-control input-md" ref="awardsSubmission"/>
+                                        </div>
+                                    </div>
+                                    <div className="form form-group">
+                                            <label className="col-md-4 control-label">IMDB Rating: </label>
+                                        <div className="col-md-4">
+                                            <input type="text" placeholder="" className="form-control input-md" ref="ratingSubmission"/>
+                                            <br></br>
+                                            <button className="btn btn-default">Submit</button>
+                                        </div>
+                                    </div>
+                            </fieldset>
+                        </form>
+                        </div>
+                    </div>
+            )
+        }
+    });
+
+    ReactDOM.render(<MainApp/>, document.getElementById('container'));
+
+</script>
+
+</body>
+</html>
