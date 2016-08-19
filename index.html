@@ -21,7 +21,7 @@
         }
 
         img{
-            max-width:25%; /* you can use % */
+            max-width:25%;
             height: auto;
         }
     </style>
@@ -38,7 +38,6 @@
             return <MovieRow
                     key={i}
                     index={i}
-                    changeRowColour={<CheckBox />}
                     deleteRow={this.handleMovieDelete}
                     addNewMovie={this.handleSubmit}
                     title={movie.title}
@@ -46,7 +45,14 @@
                     release={movie.release}
                     awards={movie.awards}
                     rating={movie.rating}
+                    id={movie.id}
             />
+        },
+
+
+        handleMovieDelete: function (id) {
+            this.props.handleRemoveMovie(id);
+
         },
 
         render: function() {
@@ -79,54 +85,43 @@
 
         handleChecked: function () {
             this.setState({checked: !this.state.checked})
+            this.props.handleChecked(this.state.checked)
         },
 
-        render: function (i) {
-            var msg;
-            var trStyle = {
-                background: '#fff'
-            };
-
-            if(!this.state.checked){
-                msg = 'checked';
-                trStyle['background'] = 'aef5cd';
-
-
-            }else{
-                msg = 'unchecked';
-                document.body.style.backgroundColor = null;
-            }
+        render: function () {
             return (
                     <div>
                         <input type="checkbox" onChange={this.handleChecked} />
-                        {msg}
                     </div>
             );
         },
     });
 
     var MovieRow = React.createClass({
+        getInitialState: function() {
+            return { isChecked: false };
 
-        deleteMovie: function () {
-          console.log("deleting Movie");
-          this.props.deleteRow(this.props.index);
         },
 
-        addMovie: function () {
-          console.log("adding new movie");
-          this.props.addNewMovie(this.refs.val.value, this.refs.val2.value);
+
+        handleChecked: function(isChecked){
+            this.setState({ isChecked });
+        },
+
+        deleteMovie: function () {
+          this.props.deleteRow(this.props.id);
         },
 
         render: function() {
             return (
 
-                    <tr>
+                    <tr style={{background: this.state.isChecked? "#aef5cd":""}}>
                         <td ref="checkBoxSubmit">{this.props.title}</td>
                         <td>{this.props.genre}</td>
                         <td>{this.props.release}</td>
                         <td>{this.props.awards}</td>
                         <td>{this.props.rating}</td>
-                        <td>{this.props.changeRowColour}</td>
+                        <td><CheckBox handleChecked={this.handleChecked} /></td>
                         <td><button className="btn btn-danger" onClick={this.deleteMovie}>Delete</button></td>
                         </tr>
             )
@@ -135,40 +130,63 @@
 
     var MainApp = React.createClass({
 
-        handleSubmit: function() {
-            var val = this.refs.titleSubmission.value;
-            var val2 = this.refs.genreSubmission.value;
-            var val3 = this.refs.releaseSubmission.value;
-            var val4 = this.refs.awardsSubmission.value;
-            var val5 = this.refs.ratingSubmission.value;
-            console.log('Testing with: ' + val + val2 + val3 + val4 + val5);
-
-    },
-
         getInitialState: function() {
 
             return {
                 movies: [{
+                    id: 1,
                     title: "Nightmare on Elm Street",
                     genre: "Horror",
                     release: "July 12, 1985",
                     awards: "Avoriaz Fantastic Film Festival - Critics Award",
                     rating: "7.5/10"
                 }, {
+                    id: 2,
                     title: "Dread ",
                     genre: "Thriller",
                     release: "January 29, 2010",
                     awards: "Fright Meter Awards - Best Supporting Actress",
                     rating: "5.7/10"
+                }, {
+                    id: 3,
+                    title: "South Park: Bigger, Longer & Uncut",
+                    genre: "Comedy",
+                    release: "June 30, 1999",
+                    awards: "MTV Movie Awards - Best Musical Performance",
+                    rating: "7.8/10"
                 }]
             };
         },
 
-        handleMovieDelete: function (i) {
-            console.log("deleting comment" + i);
-            var arr = this.state.eachMovie;
-            arr.splice(i, 1);
-            this.setState({eachMovie: arr});
+        removeMovie(id){
+            var movies = this.state.movies.slice(0);
+            var i=0, len=movies.length;
+            for(; i<len; i++){
+                if(movies[i].id===id){
+                    movies.splice( i , 1 );
+                    break;
+                }
+            }
+            this.setState({ movies });
+        },
+
+        addMovie(evt){
+            evt.preventDefault();
+            var titleSubmission = this.titleSubmission.value;
+            var genreSubmission =  this.GenreSubmission.value;
+            var releaseSubmission = this.releaseSubmission.value;
+            var awardSubmission = this.awardSubmission.value;
+            var ratingSubmission = this.ratingSubmission.value;
+            var newMovie = {
+                title: titleSubmission,
+                genre: genreSubmission,
+                release: releaseSubmission,
+                awards: awardSubmission,
+                rating: ratingSubmission
+            };
+            var movies = this.state.movies.slice(0);
+            movies.push(newMovie)
+            this.setState({ movies });
         },
 
         render: function() {
@@ -177,7 +195,7 @@
                     <div className="task">
                         <h1>React Task</h1>
                         <div className="content">
-                            <MovieTable movieList={this.state.movies}/>
+                            <MovieTable movieList={this.state.movies} handleRemoveMovie={this.removeMovie}/>
                             <p></p>
                         </div>
 
@@ -188,31 +206,31 @@
                                     <div className="form form-group">
                                             <label className="col-md-4 control-label">Title: </label>
                                         <div className="col-md-4">
-                                            <input type="text" placeholder="" className="form-control input-md" ref="titleSubmission"/>
+                                            <input type="text" placeholder="" className="form-control input-md" ref={ el=>this.titleSubmission=el} />
                                         </div>
                                     </div>
                                     <div className="form form-group">
                                             <label className="col-md-4 control-label">Genre: </label>
                                         <div className="col-md-4">
-                                            <input type="text" placeholder="" className="form-control input-md" ref="genreSubmission"/>
+                                            <input type="text" placeholder="" className="form-control input-md" ref={ el=>this.GenreSubmission=el }/>
                                         </div>
                                     </div>
                                     <div className="form form-group">
                                             <label className="col-md-4 control-label">Release Date: </label>
                                         <div className="col-md-4">
-                                            <input type="text" placeholder="" className="form-control input-md" ref="releaseSubmission"/>
+                                            <input type="text" placeholder="" className="form-control input-md" ref={ el=>this.releaseSubmission=el }/>
                                         </div>
                                     </div>
                                     <div className="form form-group">
                                             <label className="col-md-4 control-label">Notable Awards: </label>
                                         <div className="col-md-4">
-                                            <input type="text" placeholder="" className="form-control input-md" ref="awardsSubmission"/>
+                                            <input type="text" placeholder="" className="form-control input-md" ref={ el=>this.awardSubmission=el } />
                                         </div>
                                     </div>
                                     <div className="form form-group">
                                             <label className="col-md-4 control-label">IMDB Rating: </label>
                                         <div className="col-md-4">
-                                            <input type="text" placeholder="" className="form-control input-md" ref="ratingSubmission"/>
+                                            <input type="text" placeholder="" className="form-control input-md" ref={ el=>this.ratingSubmission=el }/>
                                             <br></br>
                                             <button className="btn btn-default">Submit</button>
                                         </div>
